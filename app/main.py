@@ -6,7 +6,7 @@ import os
 import json
 from dotenv import load_dotenv
 from app import app
-from app.similarity_utils import rank_segments
+from app.similarity_utils import rank_segments, store_embeddings, compute_embeddings, search_index
 
 # Load environment variables
 load_dotenv()
@@ -28,7 +28,7 @@ def extract_audio_from_video(video_path, output_path):
     print(f"Audio extracted to: {output_path}")
 
 # Process video for chapter detection
-def process_video(video_path):
+def process_video(video_path, device='cpu'):
     print(f"Processing video: {video_path}")
     results = []
     transcriber = aai.Transcriber()
@@ -60,10 +60,19 @@ def process_video(video_path):
     chapters = [{'id': idx + 1, 'start': chapter.start, 'end': chapter.end, 'headline': chapter.headline,
                  'summary': chapter.summary, 'gist': chapter.gist} for idx, chapter in enumerate(transcript.chapters)]
 
+    # Calculate embeddings for gist, headline, and summary
+    for chapter in chapters:
+        chapter['gist_embedding'] = compute_embeddings(chapter['gist'], device).cpu().numpy().tolist()
+        chapter['headline_embedding'] = compute_embeddings(chapter['headline'], device).cpu().numpy().tolist()
+        chapter['summary_embedding'] = compute_embeddings(chapter['summary'], device).cpu().numpy().tolist()
+
     results.append({
         'transcript': transcript.text,
         'chapters': chapters
     })
+    
+    # Store embeddings in the vector database
+    store_embeddings(chapters, device)
     
     os.remove(audio_path)
     print("Chapter detection completed.")
@@ -93,7 +102,7 @@ def upload_file():
         print(f"File saved to: {video_path}")
 
         # Process the uploaded video
-        results = process_video(video_path)
+        results = process_video(video_path, device='cpu')  # Change device to 'cuda' if using GPU
         output_file = os.path.join(app.config['OUTPUT_FOLDER'], f'{filename}_results.json')
         with open(output_file, 'w') as json_file:
             json.dump(results, json_file, indent=4)
@@ -127,14 +136,32 @@ def handle_query():
                     headlines.append(chapter['headline'])
                     video_segments.append({
                         'filename': filename.replace('_results.json', '.mp4'),
-                        'start': chapter['start'],
-                        'end': chapter['end'],
+                        'id': chapter['id'],
                         'headline': chapter['headline'],
-                        'id': chapter['id']
+                        'gist': chapter['gist'],
+                        'gist_embedding': chapter['gist_embedding'],
+                        'headline_embedding': chapter['headline_embedding'],
+                        'summary_embedding': chapter['summary_embedding'],
+                        'start': chapter['start'],
+                        'end': chapter['end']
                     })
 
     # Rank segments based on similarity
-    ranked_video_segments = rank_segments(query, headlines, video_segments)
+    ranked_segments_with_scores = rank_segments(query, video_segments, device='cpu')  # Change device to 'cuda' if using GPU
+
+    # Prepare the response
+    ranked_video_segments = [
+        {
+            'filename': segment['filename'],
+            'id': segment['id'],
+            'headline': segment['headline'],
+            'gist': segment['gist'],
+            'similarity_score': score,
+            'start': segment['start'],
+            'end': segment['end']
+        }
+        for score, segment in ranked_segments_with_scores
+    ]
 
     print("Query handling completed.")
     return jsonify({'segments': ranked_video_segments}), 200
