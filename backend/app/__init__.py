@@ -3,7 +3,7 @@ import os
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})  # Enable CORS for all routes
+CORS(app)  # Enable CORS for all routes
 
 # Configure upload and output folders
 app.config['UPLOAD_FOLDER'] = 'app/static/uploads'
@@ -13,5 +13,5 @@ app.config['OUTPUT_FOLDER'] = 'app/static/outputs'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
 
-# Import the routes
+# Import the routes at the end to avoid circular imports
 from app import main
