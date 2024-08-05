@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import request, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 from moviepy.editor import VideoFileClip
 import assemblyai as aai
@@ -74,6 +74,7 @@ def process_video(video_path, device='cpu'):
     # Store embeddings in the vector database
     store_embeddings(chapters, device)
     
+    # Delete the audio file after processing
     os.remove(audio_path)
     print("Chapter detection completed.")
     return results
@@ -103,11 +104,10 @@ def upload_file():
 
         # Process the uploaded video
         results = process_video(video_path, device='cpu')  # Change device to 'cuda' if using GPU
-        output_file = os.path.join(app.config['OUTPUT_FOLDER'], f'{filename}_results.json')
+        output_file = os.path.join(app.config['OUTPUT_FOLDER'], f'{os.path.splitext(filename)[0]}_results.json')
         with open(output_file, 'w') as json_file:
             json.dump(results, json_file, indent=4)
         
-        os.remove(video_path)
         print(f"Results saved to: {output_file}")
         return jsonify({'message': 'Video processed successfully', 'results': results}), 200
     else:
@@ -152,7 +152,7 @@ def handle_query():
     # Prepare the response
     ranked_video_segments = [
         {
-            'filename': segment['filename'],
+            'filename': segment['filename'].replace('.mp4.mp4', '.mp4'),  # Ensure correct filename
             'id': segment['id'],
             'headline': segment['headline'],
             'gist': segment['gist'],
@@ -165,6 +165,11 @@ def handle_query():
 
     print("Query handling completed.")
     return jsonify({'segments': ranked_video_segments}), 200
+
+# Serve static files
+@app.route('/static/uploads/<path:filename>')
+def serve_static(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
     app.run(debug=True)
