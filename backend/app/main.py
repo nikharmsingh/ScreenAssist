@@ -25,12 +25,10 @@ app.secret_key = SECRET_KEY
 
 # Paths
 FLASK_VIDEOS_PATH = 'app/static/uploads'
-REACT_PUBLIC_PATH = '../../VideoGPT/frontend/public'
+REACT_PUBLIC_PATH = '../../frontend/public'
 
 # Ensure the destination directory exists
 os.makedirs(REACT_PUBLIC_PATH, exist_ok=True)
-if (os.makedirs(REACT_PUBLIC_PATH, exist_ok=True)):
-    print("Exist Public Directory")
 
 # Check for allowed file extensions
 def allowed_file(filename):
@@ -53,6 +51,7 @@ def poll_transcription_status(transcription_id):
     headers = {
         "authorization": ASSEMBLYAI_API_KEY,
     }
+
     while True:
         response = requests.get(url, headers=headers)
         transcript = response.json()
@@ -68,38 +67,37 @@ def process_video(video_path, device='cpu'):
         print(f"Processing video: {video_path}")
         results = []
         transcriber = aai.Transcriber()
-        
+
         # Stage 1: Extract audio
         audio_path = f"{os.path.splitext(video_path)[0]}.mp3"
         extract_audio_from_video(video_path, audio_path)
         session['status'] = 'Video converted to audio'
-        
+
         # Stage 2: Transcribe
         print(f"Transcribing audio: {audio_path}")
         config = aai.TranscriptionConfig(auto_chapters=False)
         transcript = transcriber.transcribe(audio_path, config)
         session['status'] = 'Doing transcription'
-        
+
         # Poll for transcription status
         transcript = poll_transcription_status(transcript.id)
-        
         print("Transcription completed.")
-        
+
         # Stage 3: Auto Chapters
         print("Detecting chapters...")
         config = aai.TranscriptionConfig(auto_chapters=True)
         transcript = transcriber.transcribe(audio_path, config)
         session['status'] = 'Generating chapters'
-        
+
         # Poll for transcription status
         transcript = poll_transcription_status(transcript.id)
-        
+
         if transcript['status'] == 'failed':
             error_message = transcript.get('error', 'Unknown error')
             print(f"Error detecting chapters: {error_message}")
             session['status'] = f"Error detecting chapters: {error_message}"
             return {'error': f"Error detecting chapters: {error_message}"}
-        
+
         chapters = [{'id': idx + 1, 'start': chapter['start'], 'end': chapter['end'], 'headline': chapter['headline'],
                      'summary': chapter['summary'], 'gist': chapter['gist']} for idx, chapter in enumerate(transcript['chapters'])]
 
@@ -113,10 +111,10 @@ def process_video(video_path, device='cpu'):
             'transcript': transcript['text'],
             'chapters': chapters
         })
-        
+
         # Store embeddings in the vector database
         store_embeddings(chapters, device)
-        
+
         # Delete the audio file after processing
         os.remove(audio_path)
         print("Chapter detection completed.")
@@ -154,19 +152,19 @@ def upload_file():
             # Process the uploaded video
             session['status'] = 'Processing started'
             results = process_video(video_path, device='cpu')  # Change device to 'cuda' if using GPU
+
             if 'error' in results:
                 return jsonify({'error': results['error']}), 500
 
             output_file = os.path.join(app.config['OUTPUT_FOLDER'], f'{os.path.splitext(filename)[0]}_results.json')
             with open(output_file, 'w') as json_file:
                 json.dump(results, json_file, indent=4)
-            
             print(f"Results saved to: {output_file}")
-            
-             # Move the video file to the React public directory
+
+            # Move the video file to the React public directory
             shutil.move(video_path, os.path.join(REACT_PUBLIC_PATH, filename))
             print(f"Video moved to React public folder: {os.path.join(REACT_PUBLIC_PATH, filename)}")
-            
+
             return jsonify({'message': 'Video processed successfully', 'results': results}), 200
         else:
             print("Invalid file type.")
@@ -175,12 +173,6 @@ def upload_file():
     except Exception as e:
         print(f"Error in upload_file: {e}")
         return jsonify({'error': str(e)}), 500
-
-# Route to get the current status
-@app.route('/status', methods=['GET'])
-def get_status():
-    status = session.get('status', 'No status available')
-    return jsonify({'status': status})
 
 # Route for user query
 @app.route('/query', methods=['POST'])
@@ -229,7 +221,7 @@ def handle_query():
                 'start': segment['start'],
                 'end': segment['end']
             }
-            for score, segment in ranked_segments_with_scores
+            for score, segment in ranked_segments_with_scores if score >= 0.70
         ]
 
         print("Query handling completed.")
@@ -242,7 +234,7 @@ def handle_query():
 # Serve static files
 @app.route('/static/uploads/<path:filename>')
 def serve_static(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    return send_from_directory(REACT_PUBLIC_PATH, filename)
 
 if __name__ == '__main__':
     app.secret_key = os.getenv('SECRET_KEY')  # Set the secret key from environment variable

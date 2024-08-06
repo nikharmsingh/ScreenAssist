@@ -7,6 +7,7 @@ const QueryPage = () => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const playerRef = useRef(null);
+  const [noRelevantVideo, setNoRelevantVideo] = useState(false);
 
   const handleQueryChange = (event) => {
     setQuery(event.target.value);
@@ -15,7 +16,9 @@ const QueryPage = () => {
   const handleQuerySubmit = async () => {
     try {
       const response = await axios.post('http://127.0.0.1:5000/query', { query });
-      setResults(response.data.segments);
+      const segments = response.data.segments;
+      setResults(segments);
+      setNoRelevantVideo(segments.length === 0);
     } catch (error) {
       console.error('Error submitting query:', error);
     }
@@ -33,6 +36,7 @@ const QueryPage = () => {
       <input type="text" value={query} onChange={handleQueryChange} placeholder="Give the Prompt" />
       <button onClick={handleQuerySubmit}>Submit</button>
       <div className="results-section">
+        {noRelevantVideo && <div className="no-video-dialog">No relevant video found</div>}
         {results.length > 0 && (
           <>
             <div className="results">
