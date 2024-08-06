@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # VideoGPT
 GPT for users to query over the video , to find the relevant clips as per their query intent
 =======
@@ -61,5 +60,3 @@ Frontend Local Server :- ``` http://localhost:3000 ```
 ## Support
 
 For support, email nikharms2500@gmail.com
-
->>>>>>> 1368a122a79839dc68357533683f6b7ec74c01fb
