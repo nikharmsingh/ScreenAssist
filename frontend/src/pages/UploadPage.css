@@ -1,0 +1,40 @@
+.upload-page {
+  padding: 50px;
+}
+
+.upload-page h2 {
+  font-size: 2em;
+}
+
+.upload-page input[type="file"] {
+  display: block;
+  margin: 20px auto;
+  padding: 10px;
+  width: 80%;
+  max-width: 300px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.upload-page button {
+  background-color: #000;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 1em;
+}
+
+.upload-page button:hover {
+  background-color: #444;
+}
+
+.status-dialog {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  display: inline-block;
+}

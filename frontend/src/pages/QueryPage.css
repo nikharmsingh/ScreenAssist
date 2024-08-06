@@ -1,0 +1,46 @@
+.query-page {
+  padding: 50px;
+}
+
+.query-page h2 {
+  font-size: 2em;
+}
+
+.query-page input[type="text"] {
+  display: block;
+  margin: 20px auto;
+  padding: 10px;
+  width: 80%;
+  max-width: 300px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.query-page button {
+  background-color: #000;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 1em;
+}
+
+.query-page button:hover {
+  background-color: #444;
+}
+
+.results-section {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.results-section .results {
+  flex: 1;
+  margin-right: 20px;
+}
+
+.results-section .video {
+  flex: 1;
+}

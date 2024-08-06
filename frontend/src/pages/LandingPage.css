@@ -1,0 +1,30 @@
+.landing-page {
+  padding: 50px;
+}
+
+.landing-page h1 {
+  font-size: 3em;
+}
+
+.landing-page p {
+  font-size: 1.5em;
+}
+
+.buttons {
+  margin-top: 20px;
+}
+
+.buttons button {
+  background-color: #000;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 1em;
+  margin: 0 10px;
+}
+
+.buttons button:hover {
+  background-color: #444;
+}
