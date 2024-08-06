@@ -43,6 +43,8 @@ Note:- Get ASSEMBLYAI_API_KEY from https://www.assemblyai.com/
 Backend Local Server :- ``` http://127.0.0.1:5000 ```
 Frontend Local Server :- ``` http://localhost:3000 ```
 
+## Screenshots
+<img width="1512" alt="Screenshot 2024-08-06 at 12 40 46 PM" src="https://github.com/user-attachments/assets/56db6c19-0e62-47f1-962d-8cceb5c8aba6">
 
 ## Tech Stack
 
@@ -51,10 +53,6 @@ Frontend Local Server :- ``` http://localhost:3000 ```
 **Server:** Flask
 
 **Tools:** Sentence Transformer,Spacy
-
-
-## Screenshots
-<img width="1512" alt="Screenshot 2024-08-06 at 12 40 46 PM" src="https://github.com/user-attachments/assets/56db6c19-0e62-47f1-962d-8cceb5c8aba6">
 
 ## Support
 
