@@ -5,6 +5,7 @@ import './UploadPage.css';
 const UploadPage = () => {
   const [file, setFile] = useState(null);
   const [status, setStatus] = useState('');
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
@@ -19,7 +20,12 @@ const UploadPage = () => {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setUploadProgress(percentCompleted);
+        },
       });
+      setUploadProgress(100); // Ensure the progress bar finishes
       setStatus('Video processed successfully');
       console.log(response.data);
     } catch (error) {
@@ -34,6 +40,11 @@ const UploadPage = () => {
       <input type="file" onChange={handleFileChange} />
       <button onClick={handleFileUpload}>Upload</button>
       {status && <div className="status-dialog">{status}</div>}
+      {uploadProgress > 0 && (
+        <div className="progress-bar">
+          <div className="progress" style={{ width: `${uploadProgress}%` }}>Progress</div>
+        </div>
+      )}
     </div>
   );
 };

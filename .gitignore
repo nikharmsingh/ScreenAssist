@@ -1,5 +1,6 @@
 *.env
 *.mp4
+*.mp3
 /venv
 
 # Byte-compiled / optimized / DLL files
