@@ -4,6 +4,7 @@ from moviepy.editor import VideoFileClip
 import assemblyai as aai
 import os
 import json
+import shutil
 from dotenv import load_dotenv
 from app import app
 from app.similarity_utils import rank_segments, store_embeddings, compute_embeddings, search_index
@@ -21,6 +22,15 @@ aai.settings.api_key = ASSEMBLYAI_API_KEY
 
 # Set Flask secret key
 app.secret_key = SECRET_KEY
+
+# Paths
+FLASK_VIDEOS_PATH = 'app/static/uploads'
+REACT_PUBLIC_PATH = '../../VideoGPT/frontend/public'
+
+# Ensure the destination directory exists
+os.makedirs(REACT_PUBLIC_PATH, exist_ok=True)
+if (os.makedirs(REACT_PUBLIC_PATH, exist_ok=True)):
+    print("Exist Public Directory")
 
 # Check for allowed file extensions
 def allowed_file(filename):
@@ -152,6 +162,11 @@ def upload_file():
                 json.dump(results, json_file, indent=4)
             
             print(f"Results saved to: {output_file}")
+            
+             # Move the video file to the React public directory
+            shutil.move(video_path, os.path.join(REACT_PUBLIC_PATH, filename))
+            print(f"Video moved to React public folder: {os.path.join(REACT_PUBLIC_PATH, filename)}")
+            
             return jsonify({'message': 'Video processed successfully', 'results': results}), 200
         else:
             print("Invalid file type.")
