@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom'; // Import Link
 import './UploadPage.css';
 
 const UploadPage = () => {
@@ -38,7 +39,7 @@ const UploadPage = () => {
           setUploadProgress(percentCompleted);
         },
       });
-      setUploadProgress(100); // Ensure the progress bar finishes
+      setUploadProgress(100);
       setStatus('Video processed successfully');
       console.log(response.data);
     } catch (error) {
@@ -56,6 +57,9 @@ const UploadPage = () => {
         <input type="text" placeholder="YouTube URL" value={url} onChange={handleUrlChange} />
       </div>
       <button onClick={handleUpload}>Upload</button>
+      <Link to="/screen-assist">
+        <button>Go Back</button>
+      </Link>
       {status && <div className="status-dialog">{status}</div>}
       {uploadProgress > 0 && (
         <div className="progress-bar">

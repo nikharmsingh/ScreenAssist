@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import ReactPlayer from 'react-player';
+import { Link } from 'react-router-dom'; // Import Link
 import './QueryPage.css';
 
 const QueryPage = () => {
@@ -8,6 +9,9 @@ const QueryPage = () => {
   const [results, setResults] = useState([]);
   const playerRef = useRef(null);
   const [noRelevantVideo, setNoRelevantVideo] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [videoDuration, setVideoDuration] = useState(0);
+  const [selectedVideoIndex, setSelectedVideoIndex] = useState(null);
 
   const handleQueryChange = (event) => {
     setQuery(event.target.value);
@@ -17,50 +21,87 @@ const QueryPage = () => {
     try {
       const response = await axios.post('http://127.0.0.1:5000/query', { query });
       const segments = response.data.segments;
-      setResults(segments);
+      segments.sort((a, b) => b.similarity_score - a.similarity_score);
+      setResults(segments.slice(0, 2));
       setNoRelevantVideo(segments.length === 0);
     } catch (error) {
       console.error('Error submitting query:', error);
     }
   };
 
+  const handleVideoSelect = (index) => {
+    setSelectedVideoIndex(index);
+  };
+
   useEffect(() => {
-    if (results.length > 0 && playerRef.current) {
-      playerRef.current.seekTo(results[0].start / 1000, 'seconds');
+    if (selectedVideoIndex !== null && playerRef.current) {
+      playerRef.current.seekTo(results[selectedVideoIndex].start / 1000, 'seconds');
     }
-  }, [results]);
+  }, [selectedVideoIndex, results]);
+
+  const handleProgress = ({ playedSeconds }) => {
+    setCurrentTime(playedSeconds);
+  };
+
+  const handleDuration = (duration) => {
+    setVideoDuration(duration);
+  };
+
+  const convertMillisecondsToHHMMSS = (milliseconds) => {
+    const seconds = Math.floor(milliseconds / 1000);
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
 
   return (
     <div className="query-page">
       <h2>Submit Query</h2>
       <input type="text" value={query} onChange={handleQueryChange} placeholder="Give the Prompt" />
       <button onClick={handleQuerySubmit}>Submit</button>
+      <Link to="/screen-assist">
+        <button>Go Back</button>
+      </Link>
       <div className="results-section">
         {noRelevantVideo && <div className="no-video-dialog">No relevant video found</div>}
         {results.length > 0 && (
           <>
-            <div className="results">
-              <h3>Top Result</h3>
-              <p>Filename: {results[0].filename}</p>
-              <p>Start: {results[0].start}</p>
-              <p>End: {results[0].end}</p>
-              <p>Headline: {results[0].headline}</p>
-              <p>Gist: {results[0].gist}</p>
-              <p>Similarity Score: {results[0].similarity_score}</p>
+            <div className="video-selection">
+              {results.map((result, index) => (
+                <button key={index} onClick={() => handleVideoSelect(index)}>
+                  {`Video ${index + 1}`}
+                </button>
+              ))}
             </div>
-            <div className="video">
-              <ReactPlayer
-                ref={playerRef}
-                url={`${results[0].filename}`}
-                controls
-                playing
-                onProgress={({ playedSeconds }) => {
-                  if (playedSeconds >= results[0].end / 1000) {
-                    playerRef.current.seekTo(results[0].start / 1000, 'seconds');
-                  }
-                }}
-              />
-            </div>
+            {selectedVideoIndex !== null && (
+              <div className="video">
+                <ReactPlayer
+                  ref={playerRef}
+                  url={`${results[selectedVideoIndex].filename}`}
+                  controls
+                  playing
+                  onProgress={handleProgress}
+                  onDuration={handleDuration}
+                />
+                <div className="video-info">
+                  <p>Filename: {results[selectedVideoIndex].filename}</p>
+                  <p>Headline: {results[selectedVideoIndex].headline}</p>
+                  <p>Start: {convertMillisecondsToHHMMSS(results[selectedVideoIndex].start)} End: {convertMillisecondsToHHMMSS(results[selectedVideoIndex].end)}</p>
+                </div>
+                {videoDuration > 0 && (
+                  <div className="highlight-bar">
+                    <div
+                      className="highlight"
+                      style={{
+                        left: `${(results[selectedVideoIndex].start / videoDuration) * 100}%`,
+                        width: `${((results[selectedVideoIndex].end - results[selectedVideoIndex].start) / videoDuration) * 100}%`,
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
           </>
         )}
       </div>

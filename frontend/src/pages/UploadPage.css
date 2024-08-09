@@ -40,6 +40,7 @@
   font-size: 1em;
   margin-top: 5px;
   margin-bottom: 20px;
+  margin-right: 20px;
 }
 
 .upload-page button:hover {
@@ -62,7 +63,7 @@
   margin-bottom: 20px;
 }
 
-.progress-bar {
+/* .progress-bar {
   width: 100%;
   background-color: #f3f3f3;
   border-radius: 5px;
@@ -75,4 +76,4 @@
   background-color: #4caf50;
   width: 0;
   transition: width 0.2s;
-}
+} */
