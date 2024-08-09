@@ -34,6 +34,18 @@ os.makedirs(REACT_PUBLIC_PATH, exist_ok=True)
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# Download video from YouTube
+def download_youtube_video(url, path):
+    try:
+        yt = YouTube(url)
+        stream = yt.streams.filter(file_extension='mp4').first()
+        video_title = secure_filename(yt.title) + '.mp4'
+        stream.download(output_path=path, filename=video_title)
+        return os.path.join(path, video_title)
+    except Exception as e:
+        print(f"Error downloading YouTube video: {e}")
+        raise
+
 # Extract audio from video
 def extract_audio_from_video(video_path, output_path):
     try:
@@ -71,13 +83,11 @@ def process_video(video_path, device='cpu'):
         # Stage 1: Extract audio
         audio_path = f"{os.path.splitext(video_path)[0]}.mp3"
         extract_audio_from_video(video_path, audio_path)
-        session['status'] = 'Video converted to audio'
 
         # Stage 2: Transcribe
         print(f"Transcribing audio: {audio_path}")
         config = aai.TranscriptionConfig(auto_chapters=False)
         transcript = transcriber.transcribe(audio_path, config)
-        session['status'] = 'Doing transcription'
 
         # Poll for transcription status
         transcript = poll_transcription_status(transcript.id)
@@ -87,7 +97,6 @@ def process_video(video_path, device='cpu'):
         print("Detecting chapters...")
         config = aai.TranscriptionConfig(auto_chapters=True)
         transcript = transcriber.transcribe(audio_path, config)
-        session['status'] = 'Generating chapters'
 
         # Poll for transcription status
         transcript = poll_transcription_status(transcript.id)
@@ -95,7 +104,6 @@ def process_video(video_path, device='cpu'):
         if transcript['status'] == 'failed':
             error_message = transcript.get('error', 'Unknown error')
             print(f"Error detecting chapters: {error_message}")
-            session['status'] = f"Error detecting chapters: {error_message}"
             return {'error': f"Error detecting chapters: {error_message}"}
 
         chapters = [{'id': idx + 1, 'start': chapter['start'], 'end': chapter['end'], 'headline': chapter['headline'],
@@ -118,7 +126,6 @@ def process_video(video_path, device='cpu'):
         # Delete the audio file after processing
         os.remove(audio_path)
         print("Chapter detection completed.")
-        session['status'] = 'Video processed'
         return results
 
     except Exception as e:
@@ -134,41 +141,46 @@ def health_check():
 @app.route('/upload', methods=['POST'])
 def upload_file():
     try:
-        if 'file' not in request.files:
-            print("No file part in the request.")
-            return jsonify({'error': 'No file part in the request'}), 400
+        if 'file' in request.files:
+            file = request.files['file']
+            if file.filename == '':
+                print("No selected file.")
+                return jsonify({'error': 'No selected file'}), 400
 
-        file = request.files['file']
-        if file.filename == '':
-            print("No selected file.")
-            return jsonify({'error': 'No selected file'}), 400
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                video_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(video_path)
+                print(f"File saved to: {video_path}")
+            else:
+                print("Invalid file type.")
+                return jsonify({'error': 'Invalid file type'}), 400
 
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            video_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(video_path)
-            print(f"File saved to: {video_path}")
+        elif 'url' in request.form:
+            url = request.form['url']
+            video_path = download_youtube_video(url, app.config['UPLOAD_FOLDER'])
+            print(f"Video downloaded from YouTube: {video_path}")
 
-            # Process the uploaded video
-            session['status'] = 'Processing started'
-            results = process_video(video_path, device='cpu')  # Change device to 'cuda' if using GPU
-
-            if 'error' in results:
-                return jsonify({'error': results['error']}), 500
-
-            output_file = os.path.join(app.config['OUTPUT_FOLDER'], f'{os.path.splitext(filename)[0]}_results.json')
-            with open(output_file, 'w') as json_file:
-                json.dump(results, json_file, indent=4)
-            print(f"Results saved to: {output_file}")
-
-            # Move the video file to the React public directory
-            shutil.move(video_path, os.path.join(REACT_PUBLIC_PATH, filename))
-            print(f"Video moved to React public folder: {os.path.join(REACT_PUBLIC_PATH, filename)}")
-
-            return jsonify({'message': 'Video processed successfully', 'results': results}), 200
         else:
-            print("Invalid file type.")
-            return jsonify({'error': 'Invalid file type'}), 400
+            print("No file or URL provided.")
+            return jsonify({'error': 'No file or URL provided'}), 400
+
+        # Process the uploaded video
+        results = process_video(video_path, device='cpu')  # Change device to 'cuda' if using GPU
+
+        if 'error' in results:
+            return jsonify({'error': results['error']}), 500
+
+        output_file = os.path.join(app.config['OUTPUT_FOLDER'], f'{os.path.splitext(os.path.basename(video_path))[0]}_results.json')
+        with open(output_file, 'w') as json_file:
+            json.dump(results, json_file, indent=4)
+        print(f"Results saved to: {output_file}")
+
+        # Move the video file to the React public directory
+        shutil.move(video_path, os.path.join(REACT_PUBLIC_PATH, os.path.basename(video_path)))
+        print(f"Video moved to React public folder: {os.path.join(REACT_PUBLIC_PATH, os.path.basename(video_path))}")
+
+        return jsonify({'message': 'Video processed successfully', 'results': results}), 200
 
     except Exception as e:
         print(f"Error in upload_file: {e}")
