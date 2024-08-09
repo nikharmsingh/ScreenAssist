@@ -17,38 +17,21 @@ def compute_similarity(query_embedding, embeddings):
 def rank_segments(query, video_segments, device='cpu'):
     query_embedding = compute_embeddings(query, device)
     
-    # Compute similarity with gist embeddings first
-    # gist_similarities = [compute_similarity(query_embedding, torch.tensor(segment['gist_embedding']).to(device)) for segment in video_segments]
-    
-    # # Rank based on gist similarity
-    # ranked_segments = sorted(zip(gist_similarities, video_segments), key=lambda x: x[0], reverse=True)
-    
-    # # Re-rank top results based on headline similarity
-    # top_gist_segments = [segment for _, segment in ranked_segments]
-    # headline_similarities = [compute_similarity(query_embedding, torch.tensor(segment['headline_embedding']).to(device)) for segment in top_gist_segments]
-    # ranked_segments = sorted(zip(headline_similarities, top_gist_segments), key=lambda x: x[0], reverse=True)
-
-    # # Re-rank top results based on summary similarity
-    # top_headline_segments = [segment for _, segment in ranked_segments]
-    # summary_similarities = [compute_similarity(query_embedding, torch.tensor(segment['summary_embedding']).to(device)) for segment in top_headline_segments]
-    # ranked_segments = sorted(zip(summary_similarities, top_headline_segments), key=lambda x: x[0], reverse=True)
-    
+    # Compute similarities in parallel
     summary_similarities = [compute_similarity(query_embedding, torch.tensor(segment['summary_embedding']).to(device)) for segment in video_segments]
-    
-    # Rank based on summary similarity
-    ranked_segments = sorted(zip(summary_similarities, video_segments), key=lambda x: x[0], reverse=True)[:10]
-    
-    # Re-rank top results based on headline similarity
-    top_summary_segments = [segment for _, segment in ranked_segments]
-    headline_similarities = [compute_similarity(query_embedding, torch.tensor(segment['headline_embedding']).to(device)) for segment in top_summary_segments]
-    ranked_segments = sorted(zip(headline_similarities, top_summary_segments), key=lambda x: x[0], reverse=True)[:10]
+    headline_similarities = [compute_similarity(query_embedding, torch.tensor(segment['headline_embedding']).to(device)) for segment in video_segments]
+    gist_similarities = [compute_similarity(query_embedding, torch.tensor(segment['gist_embedding']).to(device)) for segment in video_segments]
 
-    # Re-rank top results based on gist similarity
-    top_headline_segments = [segment for _, segment in ranked_segments]
-    gist_similarities = [compute_similarity(query_embedding, torch.tensor(segment['gist_embedding']).to(device)) for segment in top_headline_segments]
-    ranked_segments = sorted(zip(gist_similarities, top_headline_segments), key=lambda x: x[0], reverse=True)[:10]
-    
-    return [(score, segment) for score, segment in ranked_segments]
+    # Combine results using logical OR
+    combined_segments = []
+    for idx, segment in enumerate(video_segments):
+        score = max(summary_similarities[idx], headline_similarities[idx], gist_similarities[idx])
+        combined_segments.append((score, segment))
+
+    # Sort by combined score
+    ranked_segments = sorted(combined_segments, key=lambda x: x[0], reverse=True)[:10]  # Limit to top 10
+
+    return [(score, segment) for score, segment in ranked_segments if score >= 0.00]
 
 def store_embeddings(video_segments, device='cpu'):
     d = 768  # Dimension of embeddings from 'BAAI/bge-base-en-v1.5'
