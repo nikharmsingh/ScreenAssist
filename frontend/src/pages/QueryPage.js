@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import ReactPlayer from 'react-player';
-import { Link } from 'react-router-dom'; // Import Link
+import { Link } from 'react-router-dom';
+import Navbar from './Navbar';
 import './QueryPage.css';
 
 const QueryPage = () => {
@@ -57,6 +58,7 @@ const QueryPage = () => {
 
   return (
     <div className="query-page">
+      <Navbar /> {/* Add Navbar here */}
       <h2>Submit Query</h2>
       <input type="text" value={query} onChange={handleQueryChange} placeholder="Give the Prompt" />
       <button onClick={handleQuerySubmit}>Submit</button>
@@ -105,6 +107,9 @@ const QueryPage = () => {
           </>
         )}
       </div>
+      <footer className="footer">
+        <p>Powered by Tekion</p>
+      </footer>
     </div>
   );
 };

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom'; // Import Link
 import './UploadPage.css';
+import Navbar from './Navbar';
 
 const UploadPage = () => {
   const [file, setFile] = useState(null);
@@ -50,6 +51,7 @@ const UploadPage = () => {
 
   return (
     <div className="upload-page">
+      <Navbar /> {/* Add Navbar here */}
       <h2>Upload Video</h2>
       <div className="input-section">
         <input type="file" onChange={handleFileChange} accept=".mp4" />
@@ -66,6 +68,9 @@ const UploadPage = () => {
           <div className="progress" style={{ width: `${uploadProgress}%` }}></div>
         </div>
       )}
+      <footer className="footer">
+        <p>Powered by Tekion</p>
+      </footer>
     </div>
   );
 };

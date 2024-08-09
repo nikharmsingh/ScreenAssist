@@ -1,5 +1,4 @@
 .landing-page {
-  padding: 50px;
 }
 
 .landing-page h1 {
@@ -15,7 +14,7 @@
 }
 
 .buttons button {
-  background-color: #000;
+  background-color: #10cc84;
   color: #fff;
   border: none;
   padding: 10px 20px;
@@ -27,4 +26,11 @@
 
 .buttons button:hover {
   background-color: #444;
+}
+
+.footer {
+  margin-top: 50px;
+  text-align: center;
+  font-size: 0.5em;
+  color: #666;
 }

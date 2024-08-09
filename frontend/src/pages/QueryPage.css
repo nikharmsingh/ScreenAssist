@@ -1,8 +1,5 @@
 .query-page {
-  padding: 50px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+
 }
 
 .query-page h2 {
@@ -20,14 +17,14 @@
 }
 
 .query-page button {
-  background-color: #000;
+  background-color: #10cc84;
   color: #fff;
   border: none;
   padding: 10px 20px;
   cursor: pointer;
   border-radius: 4px;
   font-size: 1em;
-  margin-bottom: 10px;
+  margin: 10px; /* Add margin to create a gap */
 }
 
 .query-page button:hover {
@@ -88,4 +85,11 @@
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   z-index: 1000;
+}
+
+.footer {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 0.6em;
+  color: #666;
 }
