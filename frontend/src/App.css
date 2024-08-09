@@ -1,0 +1,56 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+}
+
+.App {
+  text-align: center;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+header .logo img {
+  height: 40px;
+}
+
+nav {
+  display: flex;
+  gap: 20px;
+}
+
+nav a {
+  text-decoration: none;
+  color: black;
+  padding: 10px 20px;
+  border-radius: 4px;
+}
+
+nav a:hover {
+  background-color: #f0f0f0;
+}
+
+nav .signin {
+  background-color: gray;
+  color: white;
+}
+
+nav .signin:hover {
+  background-color: #666;
+}
+
+nav .register {
+  background-color: black;
+  color: white;
+}
+
+nav .register:hover {
+  background-color: #333;
+}

@@ -1,0 +1,64 @@
+.upload-page {
+  padding: 50px;
+}
+
+.upload-page h2 {
+  font-size: 2em;
+}
+
+.upload-page input[type="file"] {
+  display: block;
+  margin: 20px auto;
+  padding: 10px;
+  width: 80%;
+  max-width: 300px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.upload-page button {
+  background-color: #000;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 1em;
+  margin-top: 5px; /* Add margin-top to create space above the button */
+  margin-bottom: 20px;
+}
+
+.upload-page button:hover {
+  background-color: #444;
+}
+
+.status-dialog {
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  width: 50%; /* Adjust the width to make it smaller */
+  max-width: 200px; /* Set a maximum width */
+  margin-top: 20px;
+  margin-bottom: 20px; /* Add margin-bottom to create space below the dialog box */
+}
+
+.progress-bar {
+  width: 100%;
+  background-color: #f3f3f3;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.progress {
+  height: 20px;
+  background-color: #4caf50;
+  width: 0;
+  transition: width 0.2s;
+}
