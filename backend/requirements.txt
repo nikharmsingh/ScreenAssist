@@ -46,6 +46,7 @@ pydantic==2.8.2
 pydantic_core==2.20.1
 Pygments==2.18.0
 python-dotenv==1.0.1
+pytube==15.0.0
 PyYAML==6.0.1
 regex==2024.7.24
 requests==2.32.3
@@ -76,4 +77,3 @@ weasel==0.4.1
 websockets==12.0
 Werkzeug==3.0.3
 wrapt==1.16.0
-

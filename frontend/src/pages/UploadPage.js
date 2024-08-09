@@ -4,6 +4,7 @@ import './UploadPage.css';
 
 const UploadPage = () => {
   const [file, setFile] = useState(null);
+  const [url, setUrl] = useState('');
   const [status, setStatus] = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
 
@@ -11,9 +12,21 @@ const UploadPage = () => {
     setFile(event.target.files[0]);
   };
 
-  const handleFileUpload = async () => {
+  const handleUrlChange = (event) => {
+    setUrl(event.target.value);
+  };
+
+  const handleUpload = async () => {
     const formData = new FormData();
-    formData.append('file', file);
+
+    if (file) {
+      formData.append('file', file);
+    } else if (url) {
+      formData.append('url', url);
+    } else {
+      setStatus('Please provide a file or a YouTube URL');
+      return;
+    }
 
     try {
       const response = await axios.post('http://127.0.0.1:5000/upload', formData, {
@@ -37,12 +50,16 @@ const UploadPage = () => {
   return (
     <div className="upload-page">
       <h2>Upload Video</h2>
-      <input type="file" onChange={handleFileChange} />
-      <button onClick={handleFileUpload}>Upload</button>
+      <div className="input-section">
+        <input type="file" onChange={handleFileChange} accept=".mp4" />
+        <div className="or-divider">OR</div>
+        <input type="text" placeholder="YouTube URL" value={url} onChange={handleUrlChange} />
+      </div>
+      <button onClick={handleUpload}>Upload</button>
       {status && <div className="status-dialog">{status}</div>}
       {uploadProgress > 0 && (
         <div className="progress-bar">
-          <div className="progress" style={{ width: `${uploadProgress}%` }}>Progress</div>
+          <div className="progress" style={{ width: `${uploadProgress}%` }}></div>
         </div>
       )}
     </div>

@@ -1,14 +1,28 @@
 .upload-page {
   padding: 50px;
+  text-align: center;
 }
 
 .upload-page h2 {
   font-size: 2em;
 }
 
-.upload-page input[type="file"] {
+.input-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.or-divider {
+  margin: 0 5px; /* Reduced margin for less space */
+  font-weight: bold;
+}
+
+.upload-page input[type="file"],
+.upload-page input[type="text"] {
   display: block;
-  margin: 20px auto;
+  margin: 10px auto; /* Adjusted margin for balance */
   padding: 10px;
   width: 80%;
   max-width: 300px;
@@ -24,7 +38,7 @@
   cursor: pointer;
   border-radius: 4px;
   font-size: 1em;
-  margin-top: 5px; /* Add margin-top to create space above the button */
+  margin-top: 5px;
   margin-bottom: 20px;
 }
 
@@ -42,10 +56,10 @@
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   z-index: 1000;
-  width: 50%; /* Adjust the width to make it smaller */
-  max-width: 200px; /* Set a maximum width */
+  width: 50%;
+  max-width: 200px;
   margin-top: 20px;
-  margin-bottom: 20px; /* Add margin-bottom to create space below the dialog box */
+  margin-bottom: 20px;
 }
 
 .progress-bar {

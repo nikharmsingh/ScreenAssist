@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory, session
+from flask import Flask, request, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 from moviepy.editor import VideoFileClip
 import assemblyai as aai
@@ -10,6 +10,7 @@ from app import app
 from app.similarity_utils import rank_segments, store_embeddings, compute_embeddings, search_index
 import time
 import requests
+import yt_dlp
 
 # Load environment variables
 load_dotenv()
@@ -23,9 +24,10 @@ aai.settings.api_key = ASSEMBLYAI_API_KEY
 # Set Flask secret key
 app.secret_key = SECRET_KEY
 
+
 # Paths
 FLASK_VIDEOS_PATH = 'app/static/uploads'
-REACT_PUBLIC_PATH = '../../frontend/public'
+REACT_PUBLIC_PATH = '../frontend/public'
 
 # Ensure the destination directory exists
 os.makedirs(REACT_PUBLIC_PATH, exist_ok=True)
@@ -37,11 +39,15 @@ def allowed_file(filename):
 # Download video from YouTube
 def download_youtube_video(url, path):
     try:
-        yt = YouTube(url)
-        stream = yt.streams.filter(file_extension='mp4').first()
-        video_title = secure_filename(yt.title) + '.mp4'
-        stream.download(output_path=path, filename=video_title)
-        return os.path.join(path, video_title)
+        ydl_opts = {
+            'format': 'bestvideo+bestaudio/best',
+            'outtmpl': os.path.join(path, '%(title)s.%(ext)s'),
+            'merge_output_format': 'mp4',
+        }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info_dict = ydl.extract_info(url, download=True)
+            video_title = ydl.prepare_filename(info_dict)
+        return video_title
     except Exception as e:
         print(f"Error downloading YouTube video: {e}")
         raise
@@ -198,7 +204,6 @@ def handle_query():
         print(f"Handling query: {query}")
 
         # Collect all headlines and their corresponding video segments
-        headlines = []
         video_segments = []
         for filename in os.listdir(app.config['OUTPUT_FOLDER']):
             if filename.endswith('_results.json'):
@@ -206,7 +211,6 @@ def handle_query():
                     results = json.load(f)
                     chapters = results[0]['chapters']
                     for chapter in chapters:
-                        headlines.append(chapter['headline'])
                         video_segments.append({
                             'filename': filename.replace('_results.json', '.mp4'),
                             'id': chapter['id'],
@@ -223,18 +227,19 @@ def handle_query():
         ranked_segments_with_scores = rank_segments(query, video_segments, device='cpu')  # Change device to 'cuda' if using GPU
 
         # Prepare the response
-        ranked_video_segments = [
-            {
-                'filename': segment['filename'].replace('.mp4.mp4', '.mp4'),  # Ensure correct filename
-                'id': segment['id'],
-                'headline': segment['headline'],
-                'gist': segment['gist'],
-                'similarity_score': score,
-                'start': segment['start'],
-                'end': segment['end']
-            }
-            for score, segment in ranked_segments_with_scores if score >= 0.70
-        ]
+        ranked_video_segments = []
+        for score, segment in ranked_segments_with_scores:
+            print(f"Similarity Score: {score}")  # Print similarity score to terminal
+            if score >= 0.60:
+                ranked_video_segments.append({
+                    'filename': segment['filename'].replace('.mp4.mp4', '.mp4'),  # Ensure correct filename
+                    'id': segment['id'],
+                    'headline': segment['headline'],
+                    'gist': segment['gist'],
+                    'similarity_score': score,
+                    'start': segment['start'],
+                    'end': segment['end']
+                })
 
         print("Query handling completed.")
         return jsonify({'segments': ranked_video_segments}), 200
