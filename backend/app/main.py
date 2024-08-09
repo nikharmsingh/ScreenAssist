@@ -230,7 +230,7 @@ def handle_query():
         ranked_video_segments = []
         for score, segment in ranked_segments_with_scores:
             print(f"Similarity Score: {score} , filename {segment['filename']},  id {segment['id']}")# Print similarity score to terminal
-            if score >= 0.00:
+            if score >= 0.70:
                 ranked_video_segments.append({
                     'filename': segment['filename'].replace('.mp4.mp4', '.mp4'),  # Ensure correct filename
                     'id': segment['id'],
