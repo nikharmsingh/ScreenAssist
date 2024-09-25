@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
-import api from '../api/axios'; // Import the Axios instance
+import api from '../api/axios';
 import './LoginPage.css';
 
 const LoginPage = () => {
@@ -17,7 +17,7 @@ const LoginPage = () => {
     e.preventDefault();
     try {
       const response = await api.post('/login', formData);
-      console.log(response.data.message);
+      localStorage.setItem('token', response.data.access_token);
       navigate('/landing'); // Redirect to landing page on successful login
     } catch (err) {
       setError(err.response?.data?.error || 'An error occurred. Please try again.');
@@ -28,7 +28,7 @@ const LoginPage = () => {
     <div className="login-page">
       <Navbar />
       <main className="login-main">
-        <h1>ScreenAssist Login Page</h1>
+        <h1>ScreenAssist Login</h1>
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="username">Username</label>

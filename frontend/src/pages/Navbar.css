@@ -12,7 +12,7 @@
 
 .logo img {
   display: block;
-  padding: 5px;
-  max-height: 20px !important; /* Force the height */
-  width: auto !important; /* Maintain aspect ratio */
+  padding: 2px;
+  max-height: 80px; /* Increase the height */
+  width: auto; /* Maintain aspect ratio */
 }

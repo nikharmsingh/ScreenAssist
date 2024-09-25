@@ -1,9 +1,10 @@
 from flask import Flask
 import os
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from flask_cors import CORS
 
-app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+app = Flask(__name__)  # Replace with a secure key
+CORS(app, supports_credentials=True)
 
 # Configure upload and output folders
 app.config['UPLOAD_FOLDER'] = 'app/static/uploads'

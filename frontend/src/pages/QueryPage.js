@@ -1,18 +1,29 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import ReactPlayer from 'react-player';
-import { Link } from 'react-router-dom';
 import Navbar from './Navbar';
 import './QueryPage.css';
+import { checkAuthStatus } from '../utils/auth';
 
 const QueryPage = () => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const playerRef = useRef(null);
   const [noRelevantVideo, setNoRelevantVideo] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [videoDuration, setVideoDuration] = useState(0);
   const [selectedVideoIndex, setSelectedVideoIndex] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const verifyAuth = async () => {
+      const isAuthenticated = await checkAuthStatus();
+      if (!isAuthenticated) {
+        navigate('/');
+      }
+    };
+
+    verifyAuth();
+  }, [navigate]);
 
   const handleQueryChange = (event) => {
     setQuery(event.target.value);
@@ -34,31 +45,9 @@ const QueryPage = () => {
     setSelectedVideoIndex(index);
   };
 
-  useEffect(() => {
-    if (selectedVideoIndex !== null && playerRef.current) {
-      playerRef.current.seekTo(results[selectedVideoIndex].start / 1000, 'seconds');
-    }
-  }, [selectedVideoIndex, results]);
-
-  const handleProgress = ({ playedSeconds }) => {
-    setCurrentTime(playedSeconds);
-  };
-
-  const handleDuration = (duration) => {
-    setVideoDuration(duration);
-  };
-
-  const convertMillisecondsToHHMMSS = (milliseconds) => {
-    const seconds = Math.floor(milliseconds / 1000);
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const remainingSeconds = seconds % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
   return (
     <div className="query-page">
-      <Navbar /> {/* Add Navbar here */}
+      <Navbar />
       <h2>Submit Query</h2>
       <input type="text" value={query} onChange={handleQueryChange} placeholder="Give the Prompt" />
       <button onClick={handleQuerySubmit}>Submit</button>
@@ -83,25 +72,11 @@ const QueryPage = () => {
                   url={`${results[selectedVideoIndex].filename}`}
                   controls
                   playing
-                  onProgress={handleProgress}
-                  onDuration={handleDuration}
                 />
                 <div className="video-info">
                   <p>Filename: {results[selectedVideoIndex].filename}</p>
                   <p>Headline: {results[selectedVideoIndex].headline}</p>
-                  <p>Start: {convertMillisecondsToHHMMSS(results[selectedVideoIndex].start)} End: {convertMillisecondsToHHMMSS(results[selectedVideoIndex].end)}</p>
                 </div>
-                {videoDuration > 0 && (
-                  <div className="highlight-bar">
-                    <div
-                      className="highlight"
-                      style={{
-                        left: `${(results[selectedVideoIndex].start / videoDuration) * 100}%`,
-                        width: `${((results[selectedVideoIndex].end - results[selectedVideoIndex].start) / videoDuration) * 100}%`,
-                      }}
-                    />
-                  </div>
-                )}
               </div>
             )}
           </>

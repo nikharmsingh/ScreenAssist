@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import cross_origin
 from werkzeug.utils import secure_filename
 from moviepy.editor import VideoFileClip
 import assemblyai as aai
@@ -13,11 +14,13 @@ from app.db_con import *
 import time
 import requests
 import yt_dlp
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
 # Load environment variables
 load_dotenv()
 ASSEMBLYAI_API_KEY = os.getenv('ASSEMBLYAI_API_KEY')
 SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY_JWT = os.getenv('JWT_SECRET_KEY')
 ALLOWED_EXTENSIONS = {'mp4'}
 
 # Set AssemblyAI API key
@@ -25,7 +28,9 @@ aai.settings.api_key = ASSEMBLYAI_API_KEY
 
 # Set Flask secret key
 app.secret_key = SECRET_KEY
+app.jwt_secret_key = SECRET_KEY_JWT
 
+jwt = JWTManager(app) 
 
 # Paths
 FLASK_VIDEOS_PATH = 'app/static/uploads'
@@ -274,6 +279,7 @@ def register():
         return jsonify({'error': 'Username or email already exists'}), 400
 
 @app.route('/login', methods=['POST'])
+@cross_origin()
 def login():
     data = request.json
     username = data.get('username')
@@ -287,9 +293,21 @@ def login():
     conn.close()
 
     if user and check_password_hash(user['password'], password):
-        return jsonify({'message': 'Login successful'}), 200
+        access_token = create_access_token(identity={'username': username})
+        return jsonify({'access_token': access_token}), 200
     else:
         return jsonify({'error': 'Invalid credentials'}), 401
+@app.route('/protected', methods=['GET'])
+@jwt_required()
+def protected():
+    current_user = get_jwt_identity()
+    return jsonify(logged_in_as=current_user), 200
+
+@app.route('/check-auth', methods=['GET'])
+@jwt_required()
+def check_auth():
+    current_user = get_jwt_identity()
+    return jsonify({'authenticated': True, 'user': current_user}), 200
 
 # Serve static files
 @app.route('/static/uploads/<path:filename>')

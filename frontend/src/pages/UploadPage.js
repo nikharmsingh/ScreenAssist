@@ -1,14 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './UploadPage.css';
 import Navbar from './Navbar';
+import { checkAuthStatus } from '../utils/auth';
 
 const UploadPage = () => {
   const [file, setFile] = useState(null);
   const [url, setUrl] = useState('');
   const [status, setStatus] = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const verifyAuth = async () => {
+      const isAuthenticated = await checkAuthStatus();
+      if (!isAuthenticated) {
+        navigate('/');
+      }
+    };
+
+    verifyAuth();
+  }, [navigate]);
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
@@ -47,8 +60,6 @@ const UploadPage = () => {
       } else {
         setStatus('Processing...');
       }
-
-      console.log(response.data);
     } catch (error) {
       console.error('Error uploading file:', error);
       setStatus('Error processing video');
