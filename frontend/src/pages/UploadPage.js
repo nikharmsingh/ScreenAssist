@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom'; // Import Link
+import { Link } from 'react-router-dom';
 import './UploadPage.css';
 import Navbar from './Navbar';
 
@@ -31,6 +31,7 @@ const UploadPage = () => {
     }
 
     try {
+      setStatus('Uploading...');
       const response = await axios.post('http://127.0.0.1:5000/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -40,8 +41,13 @@ const UploadPage = () => {
           setUploadProgress(percentCompleted);
         },
       });
-      setUploadProgress(100);
-      setStatus('Video processed successfully');
+
+      if (response.status === 200) {
+        setStatus('Video processed successfully');
+      } else {
+        setStatus('Processing...');
+      }
+
       console.log(response.data);
     } catch (error) {
       console.error('Error uploading file:', error);
@@ -51,7 +57,7 @@ const UploadPage = () => {
 
   return (
     <div className="upload-page">
-      <Navbar /> {/* Add Navbar here */}
+      <Navbar />
       <h2>Upload Video</h2>
       <div className="input-section">
         <input type="file" onChange={handleFileChange} accept=".mp4" />
@@ -59,10 +65,11 @@ const UploadPage = () => {
         <input type="text" placeholder="YouTube URL" value={url} onChange={handleUrlChange} />
       </div>
       <button onClick={handleUpload}>Upload</button>
-      <Link to="/screen-assist">
+      <Link to="/landing">
         <button>Go Back</button>
       </Link>
       {status && <div className="status-dialog">{status}</div>}
+      {status === 'Uploading...' && <div className="spinner"></div>}
       {uploadProgress > 0 && (
         <div className="progress-bar">
           <div className="progress" style={{ width: `${uploadProgress}%` }}></div>

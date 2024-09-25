@@ -8,6 +8,8 @@ import shutil
 from dotenv import load_dotenv
 from app import app
 from app.similarity_utils import rank_segments, store_embeddings, compute_embeddings, search_index
+from werkzeug.security import generate_password_hash, check_password_hash
+from app.db_con import *
 import time
 import requests
 import yt_dlp
@@ -31,6 +33,7 @@ REACT_PUBLIC_PATH = '../frontend/public'
 
 # Ensure the destination directory exists
 os.makedirs(REACT_PUBLIC_PATH, exist_ok=True)
+create_users_table() # once app is start , table is created
 
 # Check for allowed file extensions
 def allowed_file(filename):
@@ -97,7 +100,7 @@ def process_video(video_path, device='cpu'):
 
         # Poll for transcription status
         transcript = poll_transcription_status(transcript.id)
-        print("Transcription completed.")
+        print(f"Transcription completed")
 
         # Stage 3: Auto Chapters
         print("Detecting chapters...")
@@ -230,7 +233,7 @@ def handle_query():
         ranked_video_segments = []
         for score, segment in ranked_segments_with_scores:
             print(f"Similarity Score: {score} , filename {segment['filename']},  id {segment['id']}")# Print similarity score to terminal
-            if score >= 0.70:
+            if score >= 0.00:
                 ranked_video_segments.append({
                     'filename': segment['filename'].replace('.mp4.mp4', '.mp4'),  # Ensure correct filename
                     'id': segment['id'],
@@ -247,6 +250,46 @@ def handle_query():
     except Exception as e:
         print(f"Error in handle_query: {e}")
         return jsonify({'error': str(e)}), 500
+
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.json
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+
+    if not username or not email or not password:
+        return jsonify({'error': 'All fields are required'}), 400
+
+    hashed_password = generate_password_hash(password)
+
+    try:
+        conn = get_db_connection()
+        conn.execute('INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
+                     (username, email, hashed_password))
+        conn.commit()
+        conn.close()
+        return jsonify({'message': 'User registered successfully'}), 201
+    except sqlite3.IntegrityError:
+        return jsonify({'error': 'Username or email already exists'}), 400
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+
+    if not username or not password:
+        return jsonify({'error': 'Username and password are required'}), 400
+
+    conn = get_db_connection()
+    user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+    conn.close()
+
+    if user and check_password_hash(user['password'], password):
+        return jsonify({'message': 'Login successful'}), 200
+    else:
+        return jsonify({'error': 'Invalid credentials'}), 401
 
 # Serve static files
 @app.route('/static/uploads/<path:filename>')

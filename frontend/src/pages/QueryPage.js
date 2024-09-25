@@ -62,7 +62,7 @@ const QueryPage = () => {
       <h2>Submit Query</h2>
       <input type="text" value={query} onChange={handleQueryChange} placeholder="Give the Prompt" />
       <button onClick={handleQuerySubmit}>Submit</button>
-      <Link to="/screen-assist">
+      <Link to="/landing">
         <button>Go Back</button>
       </Link>
       <div className="results-section">

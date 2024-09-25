@@ -4,6 +4,7 @@
 
 .query-page h2 {
   font-size: 2em;
+  padding: 50px ;
 }
 
 .query-page input[type="text"] {

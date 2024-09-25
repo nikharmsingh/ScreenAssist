@@ -7,6 +7,7 @@ const LandingPage = () => {
   return (
     <div className="landing-page">
       <Navbar /> {/* Use the new Navbar here */}
+      <main className="main">
       <h1>ScreenAssist</h1>
       <p>Chat with your Videos</p>
       <div className="buttons">
@@ -20,6 +21,7 @@ const LandingPage = () => {
           <button>Go Back</button>
         </Link>
       </div>
+      </main>
       <footer className="footer">
         <p>Powered by Tekion</p>
       </footer>

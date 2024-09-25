@@ -1,44 +1,38 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import logo from '../assets/tekion_logo.png';
-import logo1 from '../assets/logo1.png';
-import './Homepage.css';
+import { Link, useNavigate } from 'react-router-dom';
+import './HomePage.css';
+import Navbar from './Navbar';
 
-const Homepage = () => {
+const HomePage = () => {
+  const navigate = useNavigate();
+
+  // Mock authentication check
+  const isAuthenticated = false; // Replace with actual authentication logic
+
+  if (isAuthenticated) {
+    navigate('/landing'); // Redirect to landing page if already logged in
+  }
+
   return (
-    <div className="homepage">
-      <header className="navbar">
-        <div className="logo">
-          <img src={logo} alt="Tekion Logo" />
-        </div>
-        <nav className="nav-links">
-          <select className="dropdown">
-            <option>Repair Order...</option>
-          </select>
-          <input type="text" placeholder="Search..." className="search-bar" />
-          <div className="get-help">
-            <button className="dropbtn">Get Help</button>
-            <div className="dropdown-content">
-              <Link to="/chat">Chat with TARA</Link>
-              <Link to="/ticket">Submit a Ticket</Link>
-              <Link to="/screen-assist">Screen Assist</Link>
-              <Link to="/knowledge-base">Knowledge Base</Link>
-              <Link to="/onboarding">Tekion Onboarding</Link>
-              <Link to="/integration-health">Integration Health</Link>
-              <Link to="/status-page">Status Page</Link>
-            </div>
-          </div>
-        </nav>
-        <div className="user-info">
-          <div className="user-logo">TM</div>
-          <span>Tech Motors</span>
-        </div>
-      </header>
-      <main className="main-content">
-        <img src={logo1} alt="Automotive Retail Cloud" />
+    <div className="landing-page">
+      <Navbar /> {/* Use the new Navbar here */}
+      <main className="screen-assist-main">
+      <h1>ScreenAssist</h1>
+      <p>Chat with your Videos</p>
+      <div className="buttons">
+        <Link to="/Login">
+          <button>Login</button>
+        </Link>
+        <Link to="/Register">
+          <button>Register</button>
+        </Link>
+      </div>
       </main>
+      <footer className="footer">
+        <p>Powered by Tekion</p>
+      </footer>
     </div>
   );
 };
 
-export default Homepage;
+export default HomePage;
