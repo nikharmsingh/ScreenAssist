@@ -1,10 +1,10 @@
-# VideoGPT
+# ScreenAssist
 GPT for users to query over the video , to find the relevant clips as per their query intent
 =======
 
-# VideoGPT
+# ScreenAssist
 
-VideoGPT is a online tool to query on the large videos, to only refer to relevant part of the video. just like how youtube does for it's video
+ScreenAssist is a online tool to query on the large videos, to only refer to relevant part of the video. just like how youtube does for it's video
 
 
 
